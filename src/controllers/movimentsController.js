@@ -1,9 +1,22 @@
 import mongo from '../db/db.js';
 import dayjs from 'dayjs';
+import joi from 'joi';
 
 const db = mongo();
 
 async function creatMoviment(req, res) {
+
+    const useScheme = joi.object({
+        type: joi.string().required().min(1),
+        value: joi.number().required().min(1),
+        description: joi.string().required().min(1),
+    });
+    const validation = useScheme.validate({ ...req.body }, { abortEarly: true });
+
+    if (validation.error) {
+        return res.sendStatus(422);
+    }
+
 
     const { type, value, description } = req.body;
     const { authorization } = req.headers;
@@ -36,17 +49,8 @@ async function getMoviments(req, res) {
     const user = await db.collection("sessions").findOne({token});
 
     const moviemnts = await db.collection("moviments").find({userId:user.userId}).toArray();
-    console.log(user,moviemnts);
     return res.send(moviemnts);
 
 }
 
-async function getAllMoviments(req, res) {
-
-    const moviemnts = await db.collection("moviments").find({}).toArray();
-    return res.send(moviemnts);
-
-}
-
-
-export { creatMoviment, getMoviments, getAllMoviments };
+export { creatMoviment, getMoviments };

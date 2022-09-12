@@ -19,10 +19,4 @@ async function getUsers(req,res){
     return res.send(404);
 }
 
-async function getSessions(req,res){
-
-    const sessions = await db.collection("sessions").find({}).toArray();
-    res.send(sessions)
-}
-
-export { getUsers,getSessions }
+export { getUsers }
