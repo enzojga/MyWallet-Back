@@ -4,14 +4,22 @@ import dayjs from 'dayjs';
 const db = mongo();
 
 async function creatMoviment(req, res) {
-    const { user } = req.headers;
+
     const { type, value, description } = req.body;
+    const { authorization } = req.headers;
+    const token = authorization?.replace('Bearer ', '');
+    const user = await db.collection("sessions").findOne({token});
+
     console.log(user);
 
-    const userObj = await db.collection('users').findOne({name:user});
+    if(type !== "deposit" && type !== "withdraw"){
+        return res.sendStatus(422);
+    }
+
+    console.log(user);
 
     await db.collection('moviments').insertOne({
-        userId: userObj._id,
+        userId: user.userId,
         type,
         value,
         description,
@@ -23,13 +31,22 @@ async function creatMoviment(req, res) {
 
 async function getMoviments(req, res) {
 
-    const { user } = req.headers; 
+    const { authorization } = req.headers;
+    const token = authorization?.replace('Bearer ', '');
+    const user = await db.collection("sessions").findOne({token});
 
-    const userObj = await db.collection('users').findOne({name:user});
-
-    const users = await db.collection("moviments").find({userId:userObj._id}).toArray();
-    return res.send(users);
+    const moviemnts = await db.collection("moviments").find({userId:user.userId}).toArray();
+    console.log(user,moviemnts);
+    return res.send(moviemnts);
 
 }
 
-export { creatMoviment, getMoviments };
+async function getAllMoviments(req, res) {
+
+    const moviemnts = await db.collection("moviments").find({}).toArray();
+    return res.send(moviemnts);
+
+}
+
+
+export { creatMoviment, getMoviments, getAllMoviments };
